@@ -36,6 +36,15 @@ export interface ILACAfter<ModelType extends Model, UserDTO = any> {
   [key: string]: any;
 }
 
+export interface ActionExecuteSkipModelLoadParams<
+  RecordDTO = any,
+  UserDTO = any,
+> {
+  action: ActionDTO;
+  data: RecordDTO;
+  user: UserDTO;
+}
+
 export interface ActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
