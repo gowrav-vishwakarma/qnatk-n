@@ -17,7 +17,10 @@ export abstract class BaseHook implements HookInterface {
     ): Promise<any>;
 
     // Method to validate data against a DTO and return the DTO object
-    async validateData<T extends object>(data: T, DTOClass: new () => T): Promise<T> {
+    async validateData<T extends object>(
+        data: T,
+        DTOClass: new () => T,
+    ): Promise<T> {
         let dtoInstance;
 
         // Check if data is already an instance of DTOClass
@@ -33,15 +36,39 @@ export abstract class BaseHook implements HookInterface {
             return dtoInstance;
         } catch (errors) {
             console.log(errors);
-            throw new ValidationException(this.mapValidationErrors(errors as ValidationError[]));
+            throw new ValidationException(
+                this.mapValidationErrors(errors as ValidationError[]),
+            );
         }
     }
 
-    mapValidationErrors(validationErrors: ValidationError[]): Record<string, string[]> {
-        return validationErrors.reduce((acc, err) => {
-            const constraints = err.constraints;
-            acc[err.property] = constraints ? [Object.values(constraints).join('. ')] : ['An error occurred'];
-            return acc;
-        }, {});
+    mapValidationErrors(
+        validationErrors: ValidationError[],
+    ): Record<string, string[]> {
+        const errors: Record<string, string[]> = {};
+
+        function processValidationError(
+            validationErrors: ValidationError[],
+            parentPath?: string,
+        ) {
+            validationErrors.forEach((error) => {
+                const path = parentPath
+                    ? `${parentPath}.${error.property}`
+                    : error.property;
+
+                // If there are constraints on the current error object, add them to the errors object
+                if (error.constraints) {
+                    errors[path] = Object.values(error.constraints);
+                }
+
+                // If there are children, recursively process them
+                if (error.children && error.children.length > 0) {
+                    processValidationError(error.children, path);
+                }
+            });
+        }
+
+        processValidationError(validationErrors);
+        return errors;
     }
 }
