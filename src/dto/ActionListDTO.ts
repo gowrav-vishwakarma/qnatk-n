@@ -45,7 +45,7 @@ export function IsStringOrObject(validationOptions?: ValidationOptions) {
 
 class UIOptionsDTO {
   @IsString()
-  mode: 'confirmation' | 'form';
+  mode: 'confirmation' | 'form' | 'simple-input';
 
   @IsOptional()
   @IsArray()
