@@ -236,7 +236,13 @@ export class QnatkService {
     if (action.mode === 'NoRecord') return;
     const where = {};
     if (action.loadBy) {
-      where[action.loadBy] = data[action.loadBy];
+      let loadBy;
+      if (typeof action.loadBy === 'string') {
+        loadBy = { paramField: action.loadBy, tableField: action.loadBy };
+      } else {
+        loadBy = action.loadBy;
+      }
+      where[loadBy.tableField] = data[loadBy.paramField];
     } else {
       throw new ValidationException({
         Error: [`loadBy not found`],
@@ -267,8 +273,13 @@ export class QnatkService {
   ) {
     const where = {};
     if (action.loadBy) {
-      where[action.loadBy] = data_user.data.records.map(
-        (record) => record[action.loadBy],
+      let loadBy = { paramField: '', tableField: '' };
+      if (typeof action.loadBy === 'string') {
+        loadBy.paramField = action.loadBy;
+        loadBy.tableField = action.loadBy;
+      }
+      where[loadBy.tableField] = data_user.data.records.map(
+        (record) => record[loadBy.paramField],
       );
     } else {
       throw new ValidationException({
