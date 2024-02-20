@@ -183,6 +183,10 @@ export class QnatkService {
               value,
               sequelize,
             );
+          } else if (value === '$null$') {
+            sanitizedCondition[key] = { [Op.is]: null };
+          } else if (value === '$notNull$') {
+            sanitizedCondition[key] = { [Op.not]: null };
           } else {
             sanitizedCondition[key] = sanitizeCondition(value, sequelize);
           }
