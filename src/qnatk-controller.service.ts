@@ -11,10 +11,10 @@ import { Express } from 'express';
 @Injectable()
 export class QnatkControllerService {
     constructor(
-        private readonly qnatkService: QnatkService,
-        private readonly hooksService: HooksService,
-        private sequelize: Sequelize,
-        @Inject('MODEL_ACTIONS') private modelActions: ActionListDTO,
+        protected readonly qnatkService: QnatkService,
+        protected readonly hooksService: HooksService,
+        protected sequelize: Sequelize,
+        @Inject('MODEL_ACTIONS') protected modelActions: ActionListDTO,
     ) {}
 
     async list<UserDTO = any>(

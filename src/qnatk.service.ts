@@ -7,9 +7,9 @@ import { ActionDTO, ActionListDTO } from './dto/ActionListDTO';
 @Injectable()
 export class QnatkService {
     constructor(
-        private sequelize: Sequelize,
+        protected sequelize: Sequelize,
         @Inject('MODEL_ACTIONS')
-        private modelActions: Record<string, ActionListDTO>[] = [],
+        protected modelActions: Record<string, ActionListDTO>[] = [],
     ) {}
 
     public sanitizeOptions(options: any) {

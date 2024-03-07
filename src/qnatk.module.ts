@@ -11,59 +11,44 @@ import { ActionListDTO } from './dto/ActionListDTO';
 
 @Global()
 @Module({
-  imports: [],
-  providers: [],
-  exports: [],
+    imports: [],
+    providers: [],
+    exports: [],
 })
 export class QnatkModule {
-  static forRoot(
-    options: QnatkModuleOptions,
-    modelAndActions: {
-      models: any[];
-      actions: Record<string, ActionListDTO>;
-    } = {
-      models: [],
-      actions: {},
-    },
-    additionalImports: any[] = [],
-    additionalProviders: any[] = [],
-  ): DynamicModule {
-    return {
-      module: QnatkModule,
-      imports: [
-        EventEmitterModule.forRoot(),
-        SequelizeModule.forFeature(modelAndActions.models),
-        ...additionalImports,
-      ],
-      providers: [
-        {
-          provide: 'HOOKS_OPTIONS',
-          useValue: options,
-        },
-        {
-          provide: 'MODEL_ACTIONS',
-          useValue: modelAndActions.actions,
-        },
-        HooksService,
-        QnatkService,
-        QnatkControllerService,
-        ...additionalProviders,
-      ],
-      exports: [HooksService, EventEmitterModule, QnatkControllerService],
-    };
-  }
+    static forRoot(
+        options: QnatkModuleOptions,
+        additionalImports: any[] = [],
+        additionalProviders: any[] = [],
+        additionalExports: any[] = [],
+    ): DynamicModule {
+        return {
+            module: QnatkModule,
+            imports: [EventEmitterModule.forRoot(), ...additionalImports],
+            providers: [
+                {
+                    provide: 'HOOKS_OPTIONS',
+                    useValue: options,
+                },
 
-  constructor(
-    private moduleRef: ModuleRef,
-    private hooksService: HooksService,
-    @Inject('HOOKS_OPTIONS') private options: QnatkModuleOptions,
-  ) {}
+                HooksService,
+                ...additionalProviders,
+            ],
+            exports: [HooksService, EventEmitterModule, ...additionalExports],
+        };
+    }
 
-  async onModuleInit() {
-    await AutoRegisterHooks(
-      this.moduleRef,
-      this.hooksService,
-      this.options.hooksDirectory,
-    );
-  }
+    constructor(
+        private moduleRef: ModuleRef,
+        private hooksService: HooksService,
+        @Inject('HOOKS_OPTIONS') private options: QnatkModuleOptions,
+    ) {}
+
+    async onModuleInit() {
+        await AutoRegisterHooks(
+            this.moduleRef,
+            this.hooksService,
+            this.options.hooksDirectory,
+        );
+    }
 }
