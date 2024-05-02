@@ -330,6 +330,7 @@ export class QnatkService {
                     [primaryField]: primaryKey,
                 },
                 transaction,
+                individualHooks: true,
             });
         } catch (err: any) {
             console.log('err', err);
