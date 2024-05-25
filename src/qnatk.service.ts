@@ -16,7 +16,7 @@ export class QnatkService {
     {
     "scope": false / 'simpleScope', ['simpleScope', { name: 'complexScope', params: [1, 2] }, 'anotherSimpleScope'],
     }
-    works in includes as well
+    works in includes as well with same way
     */
     private sanitizeScope(scope: any): any {
         if (scope === false) {
