@@ -12,9 +12,41 @@ export class QnatkService {
         protected modelActions: Record<string, ActionListDTO>[] = [],
     ) {}
 
+    /*
+    {
+    "scope": false / 'simpleScope', ['simpleScope', { name: 'complexScope', params: [1, 2] }, 'anotherSimpleScope'],
+    }
+    */
+    private sanitizeScope(scope: any) {
+        if (scope === false) {
+            return false;
+        }
+        if (Array.isArray(scope)) {
+            return scope.map((s) => {
+                if (typeof s === 'object' && s.name && s.params) {
+                    return { method: [s.name, ...s.params] };
+                }
+                return s;
+            });
+        }
+        if (typeof scope === 'string') {
+            return [scope];
+        }
+        if (typeof scope === 'object' && scope.name && scope.params) {
+            return [{ method: [scope.name, ...scope.params] }];
+        }
+        return undefined;
+    }
+
     public sanitizeOptions(options: any) {
-        const { limit, offset, sortBy, sortByDescending, ...modelOptions } =
-            options;
+        const {
+            limit,
+            offset,
+            sortBy,
+            sortByDescending,
+            scope,
+            ...modelOptions
+        } = options;
 
         const order = [];
 
@@ -50,6 +82,9 @@ export class QnatkService {
             where = modelOptions.where;
         }
 
+        // Add this part to handle the scope parameter
+        const scopes = this.sanitizeScope(scope);
+
         return {
             ...modelOptions,
             limit,
@@ -58,6 +93,7 @@ export class QnatkService {
             attributes: attributes.length > 0 ? attributes : undefined,
             where: this.sanitizeWhere(where),
             include: this.sanitizeRecursiveIncludes(modelOptions.include),
+            scope: scopes,
         };
     }
 
@@ -205,16 +241,37 @@ export class QnatkService {
 
     findAll(baseModel: string, options?: any) {
         const sanitizedOptions = this.sanitizeOptions(options);
-        // console.log('sanitizedOptions', sanitizedOptions.where);
-        return this.sequelize.model(baseModel).findAll(sanitizedOptions);
+        const model = this.sequelize.model(baseModel);
+        if (sanitizedOptions.scope === false) {
+            return model.unscoped().findAll(sanitizedOptions);
+        } else if (sanitizedOptions.scope) {
+            return model
+                .scope(sanitizedOptions.scope)
+                .findAll(sanitizedOptions);
+        } else {
+            return model.findAll(sanitizedOptions);
+        }
     }
 
     async findAndCountAll(baseModel: string, options?: any) {
         const sanitizedOptions = this.sanitizeOptions(options);
-        // console.log('sanitizedOptions', sanitizedOptions);
-        return this.sequelize
-            .model(baseModel)
-            .findAndCountAll({ ...sanitizedOptions, distinct: true });
+        const model = this.sequelize.model(baseModel);
+        if (sanitizedOptions.scope === false) {
+            return model.unscoped().findAndCountAll({
+                ...sanitizedOptions,
+                distinct: true,
+            });
+        } else if (sanitizedOptions.scope) {
+            return model.scope(sanitizedOptions.scope).findAndCountAll({
+                ...sanitizedOptions,
+                distinct: true,
+            });
+        } else {
+            return model.findAndCountAll({
+                ...sanitizedOptions,
+                distinct: true,
+            });
+        }
     }
 
     async getActions(baseModel: string) {
