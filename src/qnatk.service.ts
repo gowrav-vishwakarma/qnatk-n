@@ -16,8 +16,9 @@ export class QnatkService {
     {
     "scope": false / 'simpleScope', ['simpleScope', { name: 'complexScope', params: [1, 2] }, 'anotherSimpleScope'],
     }
+    works in includes as well
     */
-    private sanitizeScope(scope: any) {
+    private sanitizeScope(scope: any): any {
         if (scope === false) {
             return false;
         }
@@ -123,7 +124,15 @@ export class QnatkService {
                 return { model: this.sequelize.model(inc) };
             } else {
                 if (typeof inc.model === 'string') {
-                    inc.model = this.sequelize.model(inc.model);
+                    const sequelizeModel = this.sequelize.model(inc.model);
+                    if (inc.scope === false) {
+                        inc.model = sequelizeModel.unscoped();
+                    } else if (inc.scope) {
+                        const sanitizedScope = this.sanitizeScope(inc.scope);
+                        inc.model = sequelizeModel.scope(sanitizedScope);
+                    } else {
+                        inc.model = sequelizeModel;
+                    }
                 }
                 // Recursively sanitize nested options
                 if (inc.include) {
@@ -138,7 +147,6 @@ export class QnatkService {
                 if (inc.attributes) {
                     inc.attributes = this.sanitizeAttributes(inc.attributes);
                 }
-
                 return inc;
             }
         });
