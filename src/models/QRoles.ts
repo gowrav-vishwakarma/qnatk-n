@@ -11,6 +11,7 @@ export default class QRoles extends Model<QRoles> {
     @Column({
         type: DataType.JSON,
         allowNull: true,
+        defaultValue: { menus: [], routes: [] },
     })
     permissions: {
         menus: string[];
