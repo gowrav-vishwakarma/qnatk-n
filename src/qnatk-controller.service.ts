@@ -113,23 +113,31 @@ export class QnatkControllerService {
         transaction?: Transaction,
     ) {
         const execute = async (t: Transaction) => {
-            const validated_data = await this.hooksService.triggerHooks(
+            let model_instance;
+            let validated_data = await this.hooksService.triggerHooks(
                 `before:create:${baseModel}`,
                 { data, user },
                 t,
             );
-
-            const model_instance = await this.qnatkService.addNew(
-                baseModel,
-                validated_data.data,
-                t,
-            );
+            if (this.hooksService.hasHook(`execute:create:${baseModel}`)) {
+                validated_data = await this.hooksService.triggerHooks(
+                    `execute:create:${baseModel}`,
+                    validated_data,
+                    t,
+                );
+            } else {
+                model_instance = await this.qnatkService.addNew(
+                    baseModel,
+                    validated_data.data,
+                    t,
+                );
+            }
 
             return await this.hooksService.triggerHooks(
                 `after:create:${baseModel}`,
                 {
-                    ...validated_data,
                     modelInstance: model_instance,
+                    ...validated_data,
                 },
                 t,
             );
@@ -158,23 +166,33 @@ export class QnatkControllerService {
         transaction?: Transaction, // Add an optional transaction parameter
     ) {
         const execute = async (t: Transaction) => {
-            const validated_data = await this.hooksService.triggerHooks(
+            let model_instance;
+
+            let validated_data = await this.hooksService.triggerHooks(
                 `before:create:${baseModel}`,
                 { data, files, user },
                 t,
             );
 
-            const data_returned = await this.qnatkService.addNew(
-                baseModel,
-                validated_data.data,
-                t,
-            );
+            if (this.hooksService.hasHook(`execute:create:${baseModel}`)) {
+                validated_data = await this.hooksService.triggerHooks(
+                    `execute:create:${baseModel}`,
+                    validated_data,
+                    t,
+                );
+            } else {
+                model_instance = await this.qnatkService.addNew(
+                    baseModel,
+                    validated_data.data,
+                    t,
+                );
+            }
 
             return await this.hooksService.triggerHooks(
                 `after:create:${baseModel}`,
                 {
+                    modelInstance: model_instance,
                     ...validated_data,
-                    modelInstance: data_returned,
                 },
                 t,
             );
