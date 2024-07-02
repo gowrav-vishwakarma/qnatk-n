@@ -304,6 +304,94 @@ export class QnatkControllerService {
         };
     }
 
+    async executeActionWithFile<UserDTO>(
+        baseModel: string,
+        action: string,
+        data: any,
+        user: UserDTO,
+        files: Array<Express.Multer.File>,
+        skipModelLoad?: boolean,
+        transaction?: Transaction, // Add an optional transaction parameter
+    ) {
+        // console.log(this.modelActions[baseModel]);
+        const actionObject = this.modelActions[baseModel]?.[action];
+        const execute = async (t: Transaction) => {
+            // console.log('before execute validated_data', data);
+
+            if (!actionObject) {
+                throw new Error(
+                    `Action ${action} not found for model ${baseModel}`,
+                );
+            }
+
+            let model_instance = undefined;
+
+            if (!skipModelLoad)
+                model_instance = await this.qnatkService.findOneFormActionInfo(
+                    baseModel,
+                    actionObject,
+                    data,
+                    t,
+                );
+
+            const validated_data = await this.hooksService.triggerHooks(
+                `before:${action}:${baseModel}`,
+                {
+                    action: actionObject,
+                    data,
+                    user,
+                    files,
+                    modelInstance: model_instance,
+                },
+                t,
+            );
+
+            const executedData = await this.hooksService.triggerHooks(
+                `execute:${action}:${baseModel}`,
+                validated_data,
+                t,
+                undefined,
+                undefined,
+                true,
+            );
+
+            return await this.hooksService.triggerHooks(
+                `after:${action}:${baseModel}`,
+                executedData,
+                t,
+            );
+        };
+
+        let final_data;
+        if (transaction) {
+            // Use the existing transaction
+            final_data = await execute(transaction);
+        } else {
+            // Create a new transaction
+            await this.hooksService.triggerHooks(
+                `beforeTransaction:${baseModel}:${action}`,
+                {
+                    action: actionObject,
+                    data,
+                    user,
+                },
+                null,
+            );
+            final_data = await this.sequelize.transaction(execute);
+            // .catch((err) => console.log('Rolled back with ', err));
+        }
+
+        return {
+            ...final_data,
+            modelInstance: actionObject.returnModel
+                ? final_data.modelInstance
+                : undefined,
+            data: undefined,
+            user: undefined,
+            message: `Action ${action} executed successfully`,
+        };
+    }
+
     async bulkExecuteAction<UserDTO = any>(
         baseModel: string,
         action: any,
