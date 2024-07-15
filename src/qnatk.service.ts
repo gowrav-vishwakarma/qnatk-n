@@ -98,6 +98,22 @@ export class QnatkService {
         };
     }
 
+    /**
+     * Sanitizes and processes attributes for Sequelize queries.
+     *
+     * Supported functionalities:
+     * 1. Simple column: 'column_name'
+     * 2. Function with column: { fn: 'FUNCTION', col: 'column_name', as: 'alias' }
+     * 3. Function with single argument: { fn: 'FUNCTION', args: arg, as: 'alias' }
+     * 4. Function with multiple arguments: { fn: 'FUNCTION', args: [arg1, arg2, ...], as: 'alias' }
+     * 5. Nested functions: { fn: 'OUTER_FUNC', args: [{ fn: 'INNER_FUNC', args: [...] }], as: 'alias' }
+     * 6. Literal SQL: { literal: 'SQL_EXPRESSION' }
+     * 7. Column reference: { col: 'column_name' }
+     * 8. Special string literal: '$LITERAL$' (within args)
+     *
+     * @param attributes - Array of attribute definitions
+     * @returns Processed array of attributes ready for Sequelize
+     */
     sanitizeAttributes(attributes: any) {
         return attributes.map((attr) => {
             if (typeof attr === 'object' && attr.fn) {
@@ -115,6 +131,19 @@ export class QnatkService {
         });
     }
 
+    /**
+     * Processes individual arguments within attribute definitions.
+     *
+     * Handles:
+     * 1. Column references: { col: 'column_name' }
+     * 2. Nested functions: { fn: 'FUNCTION', args: [...] }
+     * 3. Literals: { literal: 'SQL_EXPRESSION' }
+     * 4. Special string literals: '$LITERAL$'
+     * 5. Simple values: string, number, boolean, etc.
+     *
+     * @param arg - The argument to process
+     * @returns Processed argument ready for Sequelize
+     */
     private processArgument(arg: any) {
         if (typeof arg === 'object' && arg.col) {
             return this.sequelize.col(arg.col);
