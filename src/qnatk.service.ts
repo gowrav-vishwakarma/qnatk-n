@@ -100,18 +100,41 @@ export class QnatkService {
 
     sanitizeAttributes(attributes: any) {
         return attributes.map((attr) => {
-            if (typeof attr === 'object' && attr.fn && attr.col) {
-                // Handle function call
-                return [
-                    this.sequelize.fn(attr.fn, this.sequelize.col(attr.col)),
-                    attr.as,
-                ];
+            if (typeof attr === 'object' && attr.fn) {
+                // Handle function call with multiple arguments
+                const args = Array.isArray(attr.args)
+                    ? attr.args.map((arg) => this.processArgument(arg))
+                    : [this.processArgument(attr.col)];
+
+                return [this.sequelize.fn(attr.fn, ...args), attr.as];
             } else if (typeof attr === 'object' && attr.literal) {
                 // Handle literal
                 return this.sequelize.literal(attr.literal);
             }
             return attr;
         });
+    }
+
+    private processArgument(arg: any) {
+        if (typeof arg === 'object' && arg.col) {
+            return this.sequelize.col(arg.col);
+        } else if (typeof arg === 'object' && arg.fn) {
+            // Handle nested function calls
+            const nestedArgs = Array.isArray(arg.args)
+                ? arg.args.map((nestedArg) => this.processArgument(nestedArg))
+                : [this.processArgument(arg.col)];
+            return this.sequelize.fn(arg.fn, ...nestedArgs);
+        } else if (
+            typeof arg === 'string' &&
+            arg.startsWith('$') &&
+            arg.endsWith('$')
+        ) {
+            // Handle special string literals (e.g., '$CURRENT_TIMESTAMP$')
+            return this.sequelize.literal(arg.slice(1, -1));
+        } else {
+            // For other string literals or types
+            return arg;
+        }
     }
 
     // Recursive function to traverse and sanitize options
