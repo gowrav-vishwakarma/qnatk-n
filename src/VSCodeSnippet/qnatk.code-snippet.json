@@ -1,0 +1,43 @@
+{
+	"Snippet before create": {
+		"prefix": "new_qnatk_BeforeCreateHook",
+		"body": [
+			"import { Injectable } from '@nestjs/common';",
+			"import { QNATKIBeforeHookParams } from 'src/qnatk/src';",
+			"import { BaseHook } from 'src/qnatk/src/hooks/base-hook';",
+			"// import { ${2:payload_dto_class} } from './${1:payload_dto}';",
+			"",
+			"@Injectable()",
+			"export class BeforeCreateUserModel extends BaseHook {",
+			"protected autoDtoFileName = '${1:payload_dto}'; // DTO file name separated by (/)slashes for folder paths",
+			"",
+			"async execute(previousData: QNATKIBeforeHookParams</** ${2:payload_dto_class} */ any, /** ${3:user_DTO} */ any>): Promise<any> {",
+			"// constructor(private readonly serviceAlias: importedService) {}",
+			"",
+			"// used for auto-generate DTO",
+			"// this.checkAndGenerateDto(previousData.data,${2:payload_dto_class});",
+			"",
+			"// previousData.data = await this.validateData(previousData.data,${2:payload_dto_class});",
+			"",
+			"// your logic here",
+			"",
+			"//  { ...previousData } // sending appended data to",
+			"return previousData;",
+			"}",
+			"}",
+			"$0"
+		],
+		"description": "Snippet for before create hook"
+	},
+	"Print to console": {
+		"prefix": "QnatkLogBy",
+		"body": [
+			"console.log('${1:message}', ${2:variable});",
+			"console.log('')",
+			"console.log('')'",
+			"console.log('${2:message}', ${3:variable});",
+			"$0"
+		],
+		"description": "Log output to console"
+	},
+}
