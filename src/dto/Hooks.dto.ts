@@ -1,7 +1,7 @@
-import { Model } from 'sequelize-typescript';
-import { ActionDTO } from './ActionListDTO';
-import { FindOptions } from 'sequelize';
-import { Express } from 'express';
+import { Model } from "sequelize-typescript";
+import { ActionDTO } from "./ActionListDTO";
+import { FindOptions } from "sequelize";
+import { Express } from "express";
 
 export interface BeforeHookParams<DataDTO, UserDTO = any> {
   data: DataDTO;
@@ -11,7 +11,7 @@ export interface BeforeHookParams<DataDTO, UserDTO = any> {
 export interface BeforeActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > {
   action: ActionDTO;
   data: RecordDTO;
@@ -38,7 +38,7 @@ export interface ILACAfter<ModelType extends Model, UserDTO = any> {
 
 export interface ActionExecuteSkipModelLoadParams<
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > {
   action: ActionDTO;
   data: RecordDTO;
@@ -48,7 +48,7 @@ export interface ActionExecuteSkipModelLoadParams<
 export interface ActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > {
   action: ActionDTO;
   data: RecordDTO;
@@ -58,7 +58,7 @@ export interface ActionExecuteParams<
 export interface AfterActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > {
   action: ActionDTO;
   data: RecordDTO;
@@ -69,7 +69,18 @@ export interface AfterActionExecuteParams<
 export interface ActionExecuteWithFilesParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
+> {
+  action: ActionDTO;
+  data: RecordDTO;
+  user: UserDTO;
+  files: Array<Express.Multer.File>;
+  modelInstance: ModelType;
+}
+export interface BeforeActionExecuteWithFilesParams<
+  ModelType extends Model,
+  RecordDTO = any,
+  UserDTO = any
 > {
   action: ActionDTO;
   data: RecordDTO;
@@ -81,7 +92,7 @@ export interface ActionExecuteWithFilesParams<
 export interface AfterActionExecuteWithFilesParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > {
   action: ActionDTO;
   data: RecordDTO;
@@ -99,7 +110,7 @@ export interface BulkBeforeActionExecuteParams<RecordDTO = any, UserDTO = any> {
 export interface BulkActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > {
   action: ActionDTO;
   data: RecordDTO;
@@ -116,7 +127,7 @@ export interface BeforeHookParamsWithFiles<RecordDTO = any, UserDTO = any> {
 export interface AfterHookParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > {
   data: RecordDTO;
   user: UserDTO;
@@ -126,7 +137,7 @@ export interface AfterHookParams<
 export interface AfterHookParamsWithFiles<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > {
   data: RecordDTO;
   user: UserDTO;
@@ -142,7 +153,7 @@ export interface QNATKIBeforeHookParams<DataDTO, UserDTO = any>
 export interface QNATKIBeforeActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends BeforeActionExecuteParams<ModelType, RecordDTO, UserDTO> {}
 
 export interface QNATKIILACBefore<UserDTO = any> extends ILACBefore<UserDTO> {}
@@ -155,42 +166,48 @@ export interface QNATKIILACAfter<ModelType extends Model, UserDTO = any>
 
 export interface QNATKIActionExecuteSkipModelLoadParams<
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends ActionExecuteSkipModelLoadParams<RecordDTO, UserDTO> {}
 
 export interface QNATKIActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends ActionExecuteParams<ModelType, RecordDTO, UserDTO> {}
 
 export interface QNATKIAfterActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends AfterActionExecuteParams<ModelType, RecordDTO, UserDTO> {}
+
+export interface QNATKIBeforeActionExecuteWithFilesParams<
+  ModelType extends Model,
+  RecordDTO = any,
+  UserDTO = any
+> extends BeforeActionExecuteWithFilesParams<ModelType, RecordDTO, UserDTO> {}
 
 export interface QNATKIActionExecuteWithFilesParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends ActionExecuteWithFilesParams<ModelType, RecordDTO, UserDTO> {}
 
 export interface QNATKIAfterActionExecuteWithFilesParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends AfterActionExecuteWithFilesParams<ModelType, RecordDTO, UserDTO> {}
 
 export interface QNATKIBulkBeforeActionExecuteParams<
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends BulkBeforeActionExecuteParams<RecordDTO, UserDTO> {}
 
 export interface QNATKIBulkActionExecuteParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends BulkActionExecuteParams<ModelType, RecordDTO, UserDTO> {}
 
 export interface QNATKIBeforeHookParamsWithFiles<RecordDTO = any, UserDTO = any>
@@ -199,11 +216,11 @@ export interface QNATKIBeforeHookParamsWithFiles<RecordDTO = any, UserDTO = any>
 export interface QNATKIAfterHookParams<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends AfterHookParams<ModelType, RecordDTO, UserDTO> {}
 
 export interface QNATKIAfterHookParamsWithFiles<
   ModelType extends Model,
   RecordDTO = any,
-  UserDTO = any,
+  UserDTO = any
 > extends AfterHookParamsWithFiles<ModelType, RecordDTO, UserDTO> {}
