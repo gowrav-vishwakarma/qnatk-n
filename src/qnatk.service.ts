@@ -116,16 +116,26 @@ export class QnatkService {
      */
     sanitizeAttributes(attributes: any) {
         return attributes.map((attr) => {
-            if (typeof attr === 'object' && attr.fn) {
-                // Handle function call with multiple arguments
-                const args = Array.isArray(attr.args)
-                    ? attr.args.map((arg) => this.processArgument(arg))
-                    : [this.processArgument(attr.col)];
-
-                return [this.sequelize.fn(attr.fn, ...args), attr.as];
-            } else if (typeof attr === 'object' && attr.literal) {
-                // Handle literal
-                return this.sequelize.literal(attr.literal);
+            if (typeof attr === 'string') {
+                return attr;
+            } else if (typeof attr === 'object') {
+                if (attr.fn) {
+                    let args;
+                    if (attr.col) {
+                        // Handle the case where 'col' is provided instead of 'args'
+                        args = [this.sequelize.col(attr.col)];
+                    } else if (attr.args) {
+                        // Process multiple arguments
+                        args = Array.isArray(attr.args)
+                            ? attr.args.map((arg) => this.processArgument(arg))
+                            : [this.processArgument(attr.args)];
+                    } else {
+                        throw new Error('Invalid attribute definition');
+                    }
+                    return [this.sequelize.fn(attr.fn, ...args), attr.as];
+                } else if (attr.literal) {
+                    return this.sequelize.literal(attr.literal);
+                }
             }
             return attr;
         });
@@ -148,20 +158,17 @@ export class QnatkService {
         if (typeof arg === 'object' && arg.col) {
             return this.sequelize.col(arg.col);
         } else if (typeof arg === 'object' && arg.fn) {
-            // Handle nested function calls
             const nestedArgs = Array.isArray(arg.args)
                 ? arg.args.map((nestedArg) => this.processArgument(nestedArg))
-                : [this.processArgument(arg.col)];
+                : [this.processArgument(arg.col || arg.args)];
             return this.sequelize.fn(arg.fn, ...nestedArgs);
         } else if (
             typeof arg === 'string' &&
             arg.startsWith('$') &&
             arg.endsWith('$')
         ) {
-            // Handle special string literals (e.g., '$CURRENT_TIMESTAMP$')
             return this.sequelize.literal(arg.slice(1, -1));
         } else {
-            // For other string literals or types
             return arg;
         }
     }
