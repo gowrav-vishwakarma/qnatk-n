@@ -5,6 +5,7 @@ import { ValidationException } from '../Exceptions/ValidationException';
 import { plainToInstance, ClassTransformOptions } from 'class-transformer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { HookContextType } from '../dto/Hooks.dto';
 
 export interface ValidateDataOptions {
     removeExtraFields?: boolean;
@@ -18,9 +19,9 @@ export abstract class BaseHook implements HookInterface {
 
     // Define the `execute` method as abstract so that derived classes must implement it.
     abstract execute(
-        previousData: any,
+        hookContext: HookContextType,
         transaction: Transaction | undefined,
-        originalData: any,
+        originalHookContext: any,
         extraInfo?: any,
         passedExtraData?: Record<string, any>,
     ): Promise<any>;
