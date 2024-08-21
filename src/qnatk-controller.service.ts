@@ -465,19 +465,27 @@ export class QnatkControllerService {
         t
       );
 
-      const validated_data = await this.hooksService.triggerHooks(
+      let validated_data = await this.hooksService.triggerHooks(
         `before:edit:${baseModel}`,
         { data: data_with_id, user, modelInstance: model_instance },
         t
       );
 
-      await this.qnatkService.updateByPk(
-        baseModel,
-        primaryKey,
-        primaryField,
-        validated_data.data,
-        t
-      );
+      if (this.hooksService.hasHook(`execute:edit:${baseModel}`)) {
+        validated_data = await this.hooksService.triggerHooks(
+          `execute:create:${baseModel}`,
+          validated_data,
+          t
+        );
+      } else {
+        await this.qnatkService.updateByPk(
+          baseModel,
+          primaryKey,
+          primaryField,
+          validated_data.data,
+          t
+        );
+      }
 
       return await this.hooksService.triggerHooks(
         `after:edit:${baseModel}`,
