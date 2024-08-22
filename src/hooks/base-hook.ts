@@ -61,55 +61,69 @@ export abstract class BaseHook implements HookInterface {
    * // With custom transform options
    * const validData = await this.validateData(inputData, UserDTO, {}, { excludeExtraneousValues: true });
    */
-  async validateData<T extends object, U extends T | T[] = T>(
-  data: T | T[],
-  DTOClass: new () => T,
-  options: ValidateDataOptions = {},
-  transformOptions: ClassTransformOptions = {},
-): Promise<U> {
-  const isInputArray = Array.isArray(data);
-  const dataToValidate = isInputArray ? data : [data];
+  async validateData<T extends object>(
+    data: T,
+    DTOClass: new () => T,
+    options?: ValidateDataOptions,
+    transformOptions?: ClassTransformOptions
+  ): Promise<T>;
+  async validateData<T extends object>(
+    data: T[],
+    DTOClass: new () => T,
+    options?: ValidateDataOptions,
+    transformOptions?: ClassTransformOptions
+  ): Promise<T[]>;
+  async validateData<T extends object>(
+    data: T | T[],
+    DTOClass: new () => T,
+    options: ValidateDataOptions = {},
+    transformOptions: ClassTransformOptions = {}
+  ): Promise<T | T[]> {
+    const isArray = Array.isArray(data);
+    const dataToValidate = isArray ? data : [data];
 
-  const validatedData = await Promise.all(
-    dataToValidate.map(async (item) => {
-      let dtoInstance: T;
+    const validatedData = await Promise.all(
+      dataToValidate.map(async (item) => {
+        let dtoInstance: T;
 
-      if (item instanceof DTOClass) {
-        dtoInstance = item;
-      } else {
-        dtoInstance = plainToInstance(DTOClass, item, {
-          ...transformOptions,
-        });
-      }
+        if (item instanceof DTOClass) {
+          dtoInstance = item;
+        } else {
+          dtoInstance = plainToInstance(DTOClass, item, {
+            ...transformOptions,
+            enableImplicitConversion: true,
+          });
+        }
 
-      const dtoProperties = Object.getOwnPropertyNames(new DTOClass());
-      const extraFields = Object.keys(item).filter(
-        (key) => !dtoProperties.includes(key),
-      );
-
-      if (options.removeExtraFields) {
-        extraFields.forEach((field) => delete (dtoInstance as any)[field]);
-      } else if (options.errorOnExtraFields && extraFields.length > 0) {
-        throw new ValidationException({
-          extraFields: [`Extra fields found: ${extraFields.join(', ')}`],
-        });
-      }
-
-      try {
-        await validateOrReject(dtoInstance);
-        return dtoInstance;
-      } catch (errors) {
-        throw new ValidationException(
-          this.mapValidationErrors(errors as ValidationError[]),
+        const dtoProperties = Object.getOwnPropertyNames(new DTOClass());
+        const extraFields = Object.keys(item).filter(
+          (key) => !dtoProperties.includes(key)
         );
-      }
-    }),
-  );
 
-  // Return array if U is explicitly set to array type, otherwise return single item for backward compatibility
-  return (Array.isArray(data) || U extends T[] ? validatedData : validatedData[0]) as U;
-}
+        if (options.removeExtraFields) {
+          extraFields.forEach((field) => delete (dtoInstance as any)[field]);
+        } else if (options.errorOnExtraFields && extraFields.length > 0) {
+          throw new ValidationException({
+            extraFields: [`Extra fields found: ${extraFields.join(", ")}`],
+          });
+        }
 
+        try {
+          await validateOrReject(dtoInstance, {
+            validationError: { target: false },
+          });
+          return dtoInstance;
+        } catch (errors) {
+          console.error(errors);
+          throw new ValidationException(
+            this.mapValidationErrors(errors as ValidationError[])
+          );
+        }
+      })
+    );
+
+    return isArray ? validatedData : validatedData[0];
+  }
 
   mapValidationErrors(
     validationErrors: ValidationError[]
