@@ -473,7 +473,7 @@ export class QnatkControllerService {
 
       if (this.hooksService.hasHook(`execute:edit:${baseModel}`)) {
         validated_data = await this.hooksService.triggerHooks(
-          `execute:create:${baseModel}`,
+          `execute:edit:${baseModel}`,
           validated_data,
           t
         );
