@@ -1,12 +1,12 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { Model, Sequelize } from "sequelize-typescript";
-import { QnatkService } from "./qnatk.service";
-import { HooksService } from "./hooks/hooks.service";
-import { QnatkListDTO } from "./dto/QnatkListDTO";
-import { Transaction } from "sequelize";
-import { ActionListDTO } from "./dto/ActionListDTO";
+import { Inject, Injectable } from '@nestjs/common';
+import { Model, Sequelize } from 'sequelize-typescript';
+import { QnatkService } from './qnatk.service';
+import { HooksService } from './hooks/hooks.service';
+import { QnatkListDTO } from './dto/QnatkListDTO';
+import { Transaction } from 'sequelize';
+import { ActionListDTO } from './dto/ActionListDTO';
 
-import { Express } from "express";
+import { Express } from 'express';
 
 @Injectable()
 export class QnatkControllerService {
@@ -14,7 +14,7 @@ export class QnatkControllerService {
     protected readonly qnatkService: QnatkService,
     protected readonly hooksService: HooksService,
     protected sequelize: Sequelize,
-    @Inject("MODEL_ACTIONS") protected modelActions: ActionListDTO
+    @Inject('MODEL_ACTIONS') protected modelActions: ActionListDTO
   ) {}
 
   async list<UserDTO = any>(
@@ -402,7 +402,7 @@ export class QnatkControllerService {
         t
       );
 
-      console.log("model_instances", model_instances);
+      console.log('model_instances', model_instances);
 
       const executedData = await this.hooksService.triggerHooks(
         `execute:bulk-${action}:${baseModel}`,

@@ -1,11 +1,11 @@
-import { Transaction } from "sequelize";
-import { HookInterface } from "./hook.interface";
-import { validateOrReject, ValidationError } from "class-validator";
-import { ValidationException } from "../Exceptions/ValidationException";
-import { plainToInstance, ClassTransformOptions } from "class-transformer";
-import * as fs from "fs";
-import * as path from "path";
-import { HookContextType } from "../dto/Hooks.dto";
+import { Transaction } from 'sequelize';
+import { HookInterface } from './hook.interface';
+import { validateOrReject, ValidationError } from 'class-validator';
+import { ValidationException } from '../Exceptions/ValidationException';
+import { plainToInstance, ClassTransformOptions } from 'class-transformer';
+import * as fs from 'fs';
+import * as path from 'path';
+import { HookContextType } from '../dto/Hooks.dto';
 
 export interface ValidateDataOptions {
   removeExtraFields?: boolean;
@@ -104,7 +104,7 @@ export abstract class BaseHook implements HookInterface {
           extraFields.forEach((field) => delete (dtoInstance as any)[field]);
         } else if (options.errorOnExtraFields && extraFields.length > 0) {
           throw new ValidationException({
-            extraFields: [`Extra fields found: ${extraFields.join(", ")}`],
+            extraFields: [`Extra fields found: ${extraFields.join(', ')}`],
           });
         }
 
@@ -156,7 +156,7 @@ export abstract class BaseHook implements HookInterface {
   }
 
   protected generateDtoFile(data: any, callerFilePath: string): void {
-    if (process.env.NODE_ENV !== "development" || !this.autoDtoFileName) {
+    if (process.env.NODE_ENV !== 'development' || !this.autoDtoFileName) {
       return;
     }
     const relativeFilePath = `${this.autoDtoFileName}.dto.ts`;
@@ -189,7 +189,7 @@ export abstract class BaseHook implements HookInterface {
   ${decorators}
   ${key}: ${type};`;
       })
-      .join("\n");
+      .join('\n');
 
     const importedDecorators = new Set<string>();
     Object.values(data).forEach((value) => {
@@ -202,7 +202,7 @@ export abstract class BaseHook implements HookInterface {
     });
 
     const imports = `import { ${Array.from(importedDecorators).join(
-      ", "
+      ', '
     )} } from 'class-validator';`;
 
     return `${imports}
@@ -213,31 +213,31 @@ export class ${baseFileName}Dto {${properties}
 
   private getPropertyType(value: any): string {
     if (Array.isArray(value)) {
-      return "any[]"; // You might want to make this more specific based on array contents
+      return 'any[]'; // You might want to make this more specific based on array contents
     }
     if (value === null) {
-      return "any";
+      return 'any';
     }
     return typeof value;
   }
 
   private getPropertyDecorators(type: string): string {
-    let decorators = "@IsNotEmpty()";
+    let decorators = '@IsNotEmpty()';
     switch (type) {
-      case "string":
-        decorators += "\n  @IsString()";
+      case 'string':
+        decorators += '\n  @IsString()';
         break;
-      case "number":
-        decorators += "\n  @IsNumber()";
+      case 'number':
+        decorators += '\n  @IsNumber()';
         break;
-      case "boolean":
-        decorators += "\n  @IsBoolean()";
+      case 'boolean':
+        decorators += '\n  @IsBoolean()';
         break;
-      case "any[]":
-        decorators += "\n  @IsArray()";
+      case 'any[]':
+        decorators += '\n  @IsArray()';
         break;
       default:
-        decorators += "\n  @IsObject()";
+        decorators += '\n  @IsObject()';
     }
     return decorators;
   }
@@ -252,8 +252,8 @@ export class ${baseFileName}Dto {${properties}
 
   private getCallerFilePath(): string {
     const stackTrace = new Error().stack;
-    const callerLine = stackTrace?.split("\n")[3]; // 3 is the index of the caller in the stack trace
+    const callerLine = stackTrace?.split('\n')[3]; // 3 is the index of the caller in the stack trace
     const match = callerLine?.match(/\((.*):\d+:\d+\)/);
-    return match ? match[1] : "";
+    return match ? match[1] : '';
   }
 }
