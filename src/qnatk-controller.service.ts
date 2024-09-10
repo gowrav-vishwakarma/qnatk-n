@@ -4,7 +4,7 @@ import { QnatkService } from './qnatk.service';
 import { HooksService } from './hooks/hooks.service';
 import { QnatkListDTO } from './dto/QnatkListDTO';
 import { Transaction } from 'sequelize';
-import { ActionListDTO } from './dto/ActionListDTO';
+import { ActionDTO, ActionListDTO } from './dto/ActionListDTO';
 
 import { Express } from 'express';
 
@@ -388,7 +388,13 @@ export class QnatkControllerService {
     user: UserDTO,
     transaction?: Transaction // Add an optional transaction parameter
   ) {
+    const actionObject: ActionDTO = this.modelActions[baseModel]?.[action];
+
     const execute = async (t: Transaction) => {
+      if (!actionObject) {
+        throw new Error(`Action ${action} not found for model ${baseModel}`);
+      }
+
       const validated_data = await this.hooksService.triggerHooks(
         `before::bulk-${action}:${baseModel}`,
         { data, user },
@@ -397,7 +403,7 @@ export class QnatkControllerService {
 
       const model_instances = await this.qnatkService.findAllFormActionInfo(
         baseModel,
-        validated_data.data.action,
+        actionObject,
         validated_data,
         t
       );
@@ -434,7 +440,7 @@ export class QnatkControllerService {
 
     return {
       ...final_data,
-      modelInstance: data.action.returnModel
+      modelInstance: actionObject.returnModel
         ? final_data.modelInstance
         : undefined,
       data: undefined,
