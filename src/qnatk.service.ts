@@ -249,6 +249,11 @@ export class QnatkService {
             ) {
                 const sanitizedCondition = {};
 
+                // Add this check for column references
+                if (condition.col) {
+                    return sequelize.col(condition.col);
+                }
+
                 // Handle full-text search if present in this level of condition
                 if (condition.$fullText) {
                     const fullTextConditions = [];
