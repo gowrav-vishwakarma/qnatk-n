@@ -211,6 +211,58 @@ export class QnatkService {
         });
     }
 
+    /**
+     * Sanitizes and processes where conditions for Sequelize queries.
+     *
+     * Supported formats:
+     *
+     * 1. Column References:
+     *    { field: { $lte: { col: 'table.column' } } }
+     *    { field: { $eq: { col: 'other_column' } } }
+     *
+     * 2. Literal SQL:
+     *    { field: { $eq: { literal: 'SQL_EXPRESSION' } } }
+     *
+     * 3. Function Calls:
+     *    { field: { $eq: { fn: 'FUNCTION_NAME', args: 'value' } } }
+     *    { field: { $eq: { fn: 'FUNCTION_NAME', args: [arg1, arg2] } } }
+     *    { field: { $eq: { fn: 'FUNCTION_NAME', args: { col: 'column' } } } }
+     *
+     * 4. Full Text Search:
+     *    { $fullText: { table: 'table_name', fields: ['field1', 'field2'], query: 'search_text' } }
+     *    { $fullText: [{ table: 't1', fields: ['f1'], query: 'q1' }, { table: 't2', fields: ['f2'], query: 'q2' }] }
+     *
+     * 5. Null Values:
+     *    { field: '$null$' }
+     *    { field: '$notNull$' }
+     *
+     * 6. Standard Operators:
+     *    $eq, $ne, $gte, $gt, $lte, $lt, $not, $in, $notIn, $like, $notLike,
+     *    $iLike, $notILike, $regexp, $notRegexp, $between, $notBetween, $and, $or
+     *
+     * 7. Nested Conditions:
+     *    { $and: [{ field1: value1 }, { field2: value2 }] }
+     *    { $or: [{ field1: value1 }, { field2: value2 }] }
+     *
+     * Examples:
+     * ```
+     * {
+     *   created_at: {
+     *     $lte: { col: 'updated_at' }
+     *   },
+     *   status: {
+     *     $eq: { fn: 'UPPER', args: 'active' }
+     *   },
+     *   $and: [
+     *     { field1: 'value1' },
+     *     { field2: { $in: [1, 2, 3] } }
+     *   ]
+     * }
+     * ```
+     *
+     * @param where - The where conditions to sanitize
+     * @returns Sanitized where conditions ready for Sequelize
+     */
     private sanitizeWhere(where: any) {
         const sequelizeOperators = {
             $eq: Op.eq,
@@ -249,12 +301,27 @@ export class QnatkService {
             ) {
                 const sanitizedCondition = {};
 
-                // Add this check for column references
+                // Handle column references
                 if (condition.col) {
                     return sequelize.col(condition.col);
                 }
 
-                // Handle full-text search if present in this level of condition
+                // Handle literal SQL
+                if (condition.literal) {
+                    return sequelize.literal(condition.literal);
+                }
+
+                // Handle function calls
+                if (condition.fn) {
+                    const args = Array.isArray(condition.args)
+                        ? condition.args.map((arg) =>
+                              sanitizeCondition(arg, sequelize),
+                          )
+                        : [sanitizeCondition(condition.args, sequelize)];
+                    return sequelize.fn(condition.fn, ...args);
+                }
+
+                // Handle full-text search (existing code)
                 if (condition.$fullText) {
                     const fullTextConditions = [];
                     const fullTextArray = Array.isArray(condition.$fullText)
@@ -287,15 +354,19 @@ export class QnatkService {
                     }
                 }
 
-                // Recursively apply to nested objects/operators
+                // Handle special values
+                if (condition === '$null$') {
+                    return null;
+                }
+                if (condition === '$notNull$') {
+                    return { [Op.not]: null };
+                }
+
+                // Handle operators and nested conditions
                 for (const [key, value] of Object.entries(condition)) {
                     if (key in sequelizeOperators) {
                         sanitizedCondition[sequelizeOperators[key]] =
                             sanitizeCondition(value, sequelize);
-                    } else if (value === '$null$') {
-                        sanitizedCondition[key] = { [Op.is]: null };
-                    } else if (value === '$notNull$') {
-                        sanitizedCondition[key] = { [Op.not]: null };
                     } else {
                         sanitizedCondition[key] = sanitizeCondition(
                             value,
@@ -305,7 +376,7 @@ export class QnatkService {
                 }
                 return sanitizedCondition;
             }
-            return condition; // Base case: the condition is a primitive or non-plain object, return as-is
+            return condition;
         }
 
         return sanitizeCondition(where, this.sequelize);
